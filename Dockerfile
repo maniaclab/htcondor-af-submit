@@ -31,6 +31,9 @@ RUN yum install -y \
   yum-utils \ 
   dos2unix
 
+RUN yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+RUN yum install -y docker-ce-cli
+
 COPY condor/*.conf /etc/condor/config.d/
 COPY cron/* /etc/cron.d/
 COPY image-config/60-user.sh /etc/osg/image-config.d/60-user.sh
