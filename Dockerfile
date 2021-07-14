@@ -39,4 +39,4 @@ RUN yum install -y docker-ce-cli
 COPY condor/*.conf /etc/condor/config.d/
 COPY cron/* /etc/cron.d/
 COPY supervisor/* /etc/supervisord.d/
-COPY image-config/60-user.sh /etc/osg/image-config.d/60-user.sh
+COPY image-config/* /etc/osg/image-config.d/
