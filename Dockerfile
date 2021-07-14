@@ -31,6 +31,8 @@ RUN yum install -y \
   yum-utils \ 
   dos2unix
 
+RUN yum install --enablerepo=osg-upcoming -y condor
+
 RUN yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 RUN yum install -y docker-ce-cli
 
