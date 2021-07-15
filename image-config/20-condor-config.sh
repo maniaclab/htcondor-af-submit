@@ -13,6 +13,7 @@ chown condor:condor /var/lib/condor
 chown condor:condor /var/lib/condor/execute
 chown condor:condor /var/lib/condor/spool
 chown :condor /var/lib/condor/oauth_credentials
+chown condor:condor /var/log/condor
 
 # Add condor to the docker grp
 usermod -aG docker condor
