@@ -1,1 +1,1 @@
-*/5 * * * * root ( /usr/local/sbin/sync_users.sh -u root.atlas-af -g root.atlas-af -e https://api.ci-connect.net:18080 ) >> /var/log/provisioner.log 2>&1
+*/5 * * * * root ( cd /usr/local/ciconnect && /usr/local/sbin/sync_users.sh -u root.atlas-af -g root.atlas-af -e https://api.ci-connect.net:18080 ) >> /var/log/provisioner.log 2>&1
