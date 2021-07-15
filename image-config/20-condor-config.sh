@@ -14,5 +14,8 @@ chown condor:condor /var/lib/condor/execute
 chown condor:condor /var/lib/condor/spool
 chown :condor /var/lib/condor/oauth_credentials
 
+# Add condor to the docker grp
+usermod -aG docker condor
+
 # Chown the scratch dir
 chown -R condor: /scratch
