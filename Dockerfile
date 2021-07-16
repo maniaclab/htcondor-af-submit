@@ -45,3 +45,6 @@ COPY condor/*.conf /etc/condor/config.d/
 COPY cron/* /etc/cron.d/
 COPY supervisor/* /etc/supervisord.d/
 COPY image-config/* /etc/osg/image-config.d/
+
+# Igor's wrapper for singularity to make things work inside of K8S, requires OASIS CVMFS
+ADD scripts/singularity-npid.sh /usr/bin/singularity
