@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 set -eo pipefail
 
 echo "# This file was created by $prog" > /etc/condor/config.d/01-env.conf
