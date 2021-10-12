@@ -11,5 +11,5 @@ chmod +x $CONNECT_DIR/sync_users.sh
 
 # do a one-time run at startup
 pushd $CONNECT_DIR
-$CONNECT_DIR/sync_users.sh -u root.atlas-af -g root.atlas-af -e https://api.ci-connect.net:18080 >> /var/log/provisioner.log 2>&1
+$CONNECT_DIR/sync_users.sh -t $API_TOKEN -u root.atlas-af -g root.atlas-af -e https://api.ci-connect.net:18080 >> /var/log/provisioner.log 2>&1
 popd
