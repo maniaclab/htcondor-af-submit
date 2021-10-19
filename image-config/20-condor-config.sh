@@ -20,3 +20,6 @@ usermod -aG docker condor
 
 # Chown the scratch dir
 chown -R condor: /scratch
+
+# Symlink the Docker control socket to the canonical location
+ln -s /shared/docker.sock /var/run/docker.sock
