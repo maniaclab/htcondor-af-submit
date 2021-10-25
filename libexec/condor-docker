@@ -1,0 +1,125 @@
+#!/usr/bin/env python
+"""
+Wrapper for docker binary
+
+- If we are docker-run'ing a trusted image, add capabilities
+
+To enable, copy the program and set the following Condor config:
+DOCKER = /usr/local/libexec/condor-docker
+"""
+
+import argparse
+import contextlib
+import socket
+import subprocess
+import sys
+import syslog
+
+DOCKER_BIN = '/usr/bin/docker'
+TRUSTED_IMAGES = [
+    'unlhcc/osg-wn-el6',
+    'docker.io/unlhcc/osg-wn-el6',
+    'unlhcc/osg-wn-el7',
+    'docker.io/unlhcc/osg-wn-el7',
+]
+TRUSTED_CAPABILITIES = [
+#   '--cap-add=SYS_ADMIN',                      # priv singularity
+#   '--cap-add=SYS_PTRACE',                     # priv singularity
+#   '--cap-add=IPC_LOCK',                       # priv singularity
+    '--security-opt', 'seccomp=unconfined',     # unpriv singularity
+    '--security-opt', 'systempaths=unconfined', # unpriv singularity
+    '--device=/dev/fuse',                       # unpriv singularity
+    '--security-opt', 'no-new-privileges',      # unpriv singularity
+]
+
+class ArgumentParser(argparse.ArgumentParser):
+    """Don't exit on argparse error"""
+    # https://www.python.org/dev/peps/pep-0389/#discussion-sys-stderr-and-sys-exit
+    def error(self, message):
+        pass
+
+def main():
+    """Main"""
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument('exe')
+    args, _ = parser.parse_known_args()
+
+    # By default, we just pass on the command
+    cmd = [DOCKER_BIN] + sys.argv[1:]
+
+    # Are we handling 'docker run' or 'docker create'?
+    if args.exe == 'run' or args.exe == 'create':
+        # Yes, parse the options to 'docker run'
+        parser = ArgumentParser(add_help=False)
+        parser.add_argument('exe')
+        parser.add_argument('image')
+        parser.add_argument('command', nargs=argparse.REMAINDER)
+
+        # We have to tell argparse about all the --parameters with an argument
+        # which are passed from Condor to 'docker run'.
+        # Otherwise we cannot identify the Docker image because it is a
+        # positional argument.
+        parser.add_argument('--hostname', action='append')
+        parser.add_argument('--name', action='append')
+        parser.add_argument('--env', '-e', action='append')
+        parser.add_argument('--volume', action='append')
+        parser.add_argument('--device', action='append')
+        parser.add_argument('--workdir', action='append')
+        parser.add_argument('--user', action='append')
+        parser.add_argument('--group-add', dest='group-add', action='append')
+        parser.add_argument('--publish', '-p', action='append')
+        parser.add_argument('--network', action='append')
+
+        args, docker_opts = parser.parse_known_args()
+
+        # Docker (occasionally) doesn't reserve the same port for both IPv4 and IPv6
+        # - https://github.com/moby/libnetwork/issues/2639
+        # If no host port is specified, reserve one ourselves
+        if args.publish:
+            for i, port in enumerate(args.publish):
+                if port.isdigit():
+                    args.publish[i] = str(port_reserve()) + ':' + port
+
+        # Put our parsed options back into the list
+        for arg, vals in vars(args).items():
+            if arg in ['exe', 'image', 'command', 'network']:
+                continue
+            for val in vals or []:
+                docker_opts += ['--' + arg, val]
+
+        # Did we successfully parse the docker run command?
+        if args.image and args.command:
+            # Is the Docker image in the trusted list?
+            if args.image in TRUSTED_IMAGES:
+                docker_opts += TRUSTED_CAPABILITIES
+
+            # Build the new 'docker run' command
+            cmd = [DOCKER_BIN, args.exe] + docker_opts + [args.image] + args.command
+
+    syslog.syslog('"%s" => "%s"' % (' '.join(sys.argv), ' '.join(cmd)))
+    ret = subprocess.call(cmd)
+    sys.exit(ret)
+
+# Assign an ephemeral host port
+# - Copied from ephemeral-port-reserve (MIT license)
+# - https://github.com/Yelp/ephemeral-port-reserve/
+def port_reserve(ip='127.0.0.1', port=0):
+    port = int(port)
+    with contextlib.closing(socket.socket()) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((ip, port))
+
+        # the connect below deadlocks on kernel >= 4.4.0 unless this arg is greater than zero
+        s.listen(1)
+
+        sockname = s.getsockname()
+
+        # these three are necessary just to get the port into a TIME_WAIT state
+        with contextlib.closing(socket.socket()) as s2:
+            s2.connect(sockname)
+            sock, _ = s.accept()
+            with contextlib.closing(sock):
+                return sockname[1]
+
+if __name__ == "__main__":
+    main()
