@@ -21,7 +21,7 @@ usermod -aG docker condor
 # Chown the scratch dir
 chown -R condor: /scratch
 
-chmod +x /usr/local/libexec/docker-condor
+chmod +x /usr/local/libexec/condor-docker
 
 # Symlink the Docker control socket to the canonical location
 ln -s /shared/docker.sock /var/run/docker.sock
