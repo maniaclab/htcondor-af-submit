@@ -69,6 +69,7 @@ def main():
         parser.add_argument('--group-add', dest='group-add', action='append')
         parser.add_argument('--publish', '-p', action='append')
         parser.add_argument('--network', action='append')
+        parser.add_argument('--security-opt', action='append')
 
         args, docker_opts = parser.parse_known_args()
 
