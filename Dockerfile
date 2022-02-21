@@ -47,6 +47,9 @@ COPY cron/* /etc/cron.d/
 COPY supervisor/* /etc/supervisord.d/
 COPY image-config/* /etc/osg/image-config.d/
 COPY libexec/* /usr/local/libexec/
+COPY sysview-client/syclient /bin/
+COPY sysview-client/client /usr/lib/python3.6/site-packages/sysview/
+COPY scripts/condor_node_check.sh /usr/local/sbin/
 
 # Igor's wrapper for singularity to make things work inside of K8S, requires OASIS CVMFS
 ADD scripts/singularity_npid.sh /usr/bin/singularity
