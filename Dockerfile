@@ -41,7 +41,25 @@ RUN yum install --enablerepo=osg-upcoming -y condor
 RUN yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 RUN yum install -y docker-ce-cli
 RUN yum install -y http://mirror.grid.uchicago.edu/pub/mwt2/sw/el7/mwt2-sysview-worker-2.0.3-1.noarch.rpm
-RUN pip3 install --no-cache-dir tabulate
+RUN yum install -y python36-tabulate
+
+# Add CVMFSEXEC 
+RUN git clone https://github.com/cvmfs/cvmfsexec /cvmfsexec \
+ && cd /cvmfsexec \
+ && ./makedist osg \
+ # /cvmfs-cache and /cvmfs-logs is where the cache and logs will go; possibly bind-mounted. \
+ # Needs to be 1777 so the unpriv user can use it. \
+ # (Can't just chown, don't know the UID of the unpriv user.) \
+ && mkdir -p /cvmfs-cache /cvmfs-logs \
+ && chmod 1777 /cvmfs-cache /cvmfs-logs \
+ && rm -rf dist/var/lib/cvmfs log \
+ && ln -s /cvmfs-cache dist/var/lib/cvmfs \
+ && ln -s /cvmfs-logs log \
+ # tar up and delete the contents of /cvmfsexec so the unpriv user can extract it and own the files. \
+ && tar -czf /cvmfsexec.tar.gz ./* \
+ && rm -rf ./* \
+ # Again, needs to be 1777 so the unpriv user can extract into it. \
+ && chmod 1777 /cvmfsexec
 
 COPY condor/*.conf /etc/condor/config.d/
 COPY cron/* /etc/cron.d/
@@ -54,3 +72,7 @@ COPY scripts/condor_node_check.sh /usr/local/sbin/
 
 # Igor's wrapper for singularity to make things work inside of K8S, requires OASIS CVMFS
 ADD scripts/singularity_npid.sh /usr/bin/singularity
+
+ENTRYPOINT ["/bin/entrypoint.sh"]
+# Adding ENTRYPOINT clears CMD
+CMD ["/usr/local/sbin/supervisord_startup.sh"]
