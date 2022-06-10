@@ -30,7 +30,8 @@ RUN yum install -y \
   zip \
   yum-utils \ 
   dos2unix \
-  man-db
+  man-db \
+  telnet 
 
 #RUN yum install https://linuxsoft.cern.ch/wlcg/centos7/x86_64/wlcg-repo-1.0.0-1.el7.noarch.rpm -y
 #RUN yum install HEP_OSlibs
