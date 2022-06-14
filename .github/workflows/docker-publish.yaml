@@ -20,7 +20,7 @@ env:
   #IMAGE_NAME: fengping18/htcondor-af
   # harbor
   REGISTRY: hub.opensciencegrid.org
-  IMAGE_NAME: usatlas/htcondor-af
+  IMAGE_NAME: usatlas/htcondor-af-submit
   
 jobs:
 
