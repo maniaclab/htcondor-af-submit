@@ -15,12 +15,6 @@ chown condor:condor /var/lib/condor/spool
 chown :condor /var/lib/condor/oauth_credentials
 chown condor:condor /var/log/condor
 
-# Add condor to the docker grp
-usermod -aG docker condor
-
-# Chown the scratch dir
-chown -R condor: /scratch
-
 chmod +x /usr/local/libexec/condor-docker
 
 # Symlink the Docker control socket to the canonical location
